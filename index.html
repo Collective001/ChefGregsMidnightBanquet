@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chef Greg's Midnight Banquet</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111512;
+      --panel: #1c251f;
+      --panel-2: #27352c;
+      --panel-3: #344737;
+      --text: #f7f0df;
+      --muted: #c8bda7;
+      --gold: #f3c35b;
+      --green: #97d37d;
+      --red: #ef8d74;
+      --blue: #99c7e8;
+      --border: #59705b;
+      --shadow: rgba(0, 0, 0, 0.36);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(151, 211, 125, 0.18), transparent 24rem),
+        radial-gradient(circle at 88% 10%, rgba(243, 195, 91, 0.16), transparent 22rem),
+        linear-gradient(150deg, #111512 0%, #20231a 50%, #121815 100%);
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.45;
+    }
+
+    main {
+      width: min(980px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-top: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.45rem, 6vw, 2.55rem);
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .tagline {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      font-size: 0.86rem;
+    }
+
+    .pill {
+      min-width: 92px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      background: rgba(28, 37, 31, 0.9);
+      border-radius: 8px;
+      color: var(--gold);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      font-size: 0.78rem;
+      text-align: center;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      background: rgba(28, 37, 31, 0.92);
+      border-radius: 8px;
+      padding: 8px;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      font-size: 0.8rem;
+      min-height: 50px;
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--gold);
+      font-size: 1rem;
+    }
+
+    #story {
+      overflow-y: auto;
+      min-height: 40vh;
+      max-height: calc(100vh - 318px);
+      border: 1px solid var(--border);
+      background: rgba(28, 37, 31, 0.94);
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 16px 36px var(--shadow);
+    }
+
+    .entry {
+      margin: 0 0 14px;
+      white-space: pre-wrap;
+    }
+
+    .choice-line {
+      color: var(--blue);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      font-size: 0.92rem;
+    }
+
+    .good {
+      color: var(--green);
+    }
+
+    .bad {
+      color: var(--red);
+    }
+
+    .gold {
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+    }
+
+    #choices {
+      display: grid;
+      gap: 8px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    button {
+      min-height: 46px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    button:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, #4b633b, #6b7d3e);
+      border-color: var(--gold);
+    }
+
+    .danger {
+      background: #4a2a24;
+      border-color: var(--red);
+    }
+
+    .utility-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .utility-row button {
+      text-align: center;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      color: var(--muted);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      font-size: 0.78rem;
+      text-align: center;
+      padding-bottom: 2px;
+    }
+
+    @media (max-width: 620px) {
+      main {
+        padding: 10px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      #story {
+        max-height: calc(100vh - 390px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Chef Greg's Midnight Banquet</h1>
+        <p class="tagline">A culinary text RPG about one raccoon and too many opinions.</p>
+      </div>
+      <div class="pill" id="phasePill">Kitchen</div>
+    </header>
+
+    <section class="stats">
+      <div class="stat">Coins<strong id="coins">0</strong></div>
+      <div class="stat">Reputation<strong id="reputation">0</strong></div>
+      <div class="stat">Order<strong id="orderNo">1/10</strong></div>
+      <div class="stat">Golden<strong id="goldenNo">0/5</strong></div>
+    </section>
+
+    <section id="story" aria-live="polite"></section>
+
+    <section class="controls">
+      <div id="choices"></div>
+      <div class="utility-row">
+        <button type="button" id="pantryButton">Pantry</button>
+        <button type="button" id="statusButton">Status</button>
+        <button type="button" id="resetButton">Reset</button>
+      </div>
+    </section>
+
+    <footer>Chef Greg is not licensed in most jurisdictions.</footer>
+  </main>
+
+  <script>
+    const markets = {
+      asian: { name: "Asian Market", golden: "Moon Miso" },
+      indian: { name: "Indian Market", golden: "Saffron Thread" },
+      french: { name: "French Market", golden: "White Truffle" },
+      latin: { name: "Latin Market", golden: "Sainted Lime" },
+      american: { name: "American Market", golden: "Legendary Pickle" }
+    };
+
+    const ingredients = [
+      { id: "bok_choy", name: "Bok Choy", market: "asian", cost: 2, veg: true, tags: ["vegetable", "fresh", "green", "japanese"], pairs: ["ginger", "shiitake", "sesame_oil", "soy_sauce"], clashes: ["kraft_singles", "peanut_butter"] },
+      { id: "jasmine_rice", name: "Jasmine Rice", market: "asian", cost: 2, veg: true, tags: ["base", "rice", "gentle", "japanese"], pairs: ["ginger", "soy_sauce", "coconut_milk", "curry_spices"], clashes: [] },
+      { id: "soy_sauce", name: "Soy Sauce", market: "asian", cost: 1, veg: true, tags: ["seasoning", "salty", "umami", "japanese"], pairs: ["ginger", "sesame_oil", "shiitake"], clashes: ["brie", "peanut_butter"] },
+      { id: "ginger", name: "Ginger", market: "asian", cost: 1, veg: true, tags: ["seasoning", "fresh", "warm", "japanese"], pairs: ["bok_choy", "jasmine_rice", "coconut_milk"], clashes: [] },
+      { id: "shiitake", name: "Shiitake Mushrooms", market: "asian", cost: 3, veg: true, tags: ["vegetable", "umami", "earthy", "japanese"], pairs: ["soy_sauce", "ginger", "white_truffle"], clashes: ["peanut_butter"] },
+      { id: "sesame_oil", name: "Sesame Oil", market: "asian", cost: 2, veg: true, tags: ["fat", "nutty", "aroma", "japanese"], pairs: ["bok_choy", "soy_sauce", "ginger"], clashes: ["cream"] },
+
+      { id: "chickpeas", name: "Chickpeas", market: "indian", cost: 2, veg: true, tags: ["protein", "comfort", "hearty", "indian"], pairs: ["curry_spices", "coconut_milk", "cilantro"], clashes: [] },
+      { id: "basmati_rice", name: "Basmati Rice", market: "indian", cost: 2, veg: true, tags: ["base", "rice", "aroma", "indian"], pairs: ["curry_spices", "saffron_thread", "coconut_milk"], clashes: [] },
+      { id: "curry_spices", name: "Curry Spices", market: "indian", cost: 2, veg: true, tags: ["seasoning", "spicy", "warm", "indian"], pairs: ["chickpeas", "coconut_milk", "bok_choy"], clashes: ["brie"] },
+      { id: "paneer", name: "Paneer", market: "indian", cost: 3, veg: true, dairy: true, tags: ["protein", "creamy", "indian"], pairs: ["curry_spices", "jalapeno", "cilantro"], clashes: [] },
+      { id: "coconut_milk", name: "Coconut Milk", market: "indian", cost: 3, veg: true, tags: ["sauce", "creamy", "gentle", "indian"], pairs: ["curry_spices", "ginger", "jasmine_rice"], clashes: ["brie"] },
+      { id: "cilantro", name: "Cilantro", market: "indian", cost: 1, veg: true, tags: ["herb", "fresh", "green", "indian"], pairs: ["lime", "curry_spices", "black_beans"], clashes: [] },
+
+      { id: "baguette", name: "Baguette", market: "french", cost: 2, veg: true, gluten: true, tags: ["base", "bread", "french", "crisp"], pairs: ["brie", "butter", "thyme"], clashes: ["soy_sauce"] },
+      { id: "brie", name: "Brie", market: "french", cost: 4, veg: true, dairy: true, tags: ["protein", "creamy", "elegant", "french"], pairs: ["baguette", "butter", "white_truffle"], clashes: ["curry_spices", "pickles"] },
+      { id: "shallots", name: "Shallots", market: "french", cost: 2, veg: true, tags: ["vegetable", "aroma", "french"], pairs: ["butter", "thyme", "potatoes"], clashes: [] },
+      { id: "butter", name: "Butter", market: "french", cost: 2, veg: true, dairy: true, tags: ["fat", "rich", "comfort", "french"], pairs: ["potatoes", "thyme", "white_truffle"], clashes: ["sesame_oil"] },
+      { id: "thyme", name: "Thyme", market: "french", cost: 1, veg: true, tags: ["herb", "elegant", "french"], pairs: ["butter", "shallots", "potatoes"], clashes: [] },
+      { id: "cream", name: "Cream", market: "french", cost: 3, veg: true, dairy: true, tags: ["sauce", "creamy", "rich", "french"], pairs: ["potatoes", "shallots", "white_truffle"], clashes: ["sesame_oil", "lime"] },
+
+      { id: "black_beans", name: "Black Beans", market: "latin", cost: 2, veg: true, tags: ["protein", "hearty", "latin"], pairs: ["lime", "jalapeno", "corn_tortillas"], clashes: [] },
+      { id: "corn_tortillas", name: "Corn Tortillas", market: "latin", cost: 2, veg: true, tags: ["base", "corn", "latin", "street"], pairs: ["black_beans", "queso_fresco", "jalapeno"], clashes: [] },
+      { id: "lime", name: "Lime", market: "latin", cost: 1, veg: true, tags: ["acid", "fresh", "bright", "latin"], pairs: ["cilantro", "black_beans", "jalapeno"], clashes: ["cream"] },
+      { id: "plantains", name: "Plantains", market: "latin", cost: 2, veg: true, tags: ["base", "sweet", "comfort", "latin"], pairs: ["lime", "jalapeno", "butter"], clashes: ["soy_sauce"] },
+      { id: "queso_fresco", name: "Queso Fresco", market: "latin", cost: 3, veg: true, dairy: true, tags: ["protein", "fresh", "latin"], pairs: ["corn_tortillas", "lime", "jalapeno"], clashes: [] },
+      { id: "jalapeno", name: "Jalapeno", market: "latin", cost: 1, veg: true, tags: ["seasoning", "spicy", "fresh", "latin"], pairs: ["lime", "black_beans", "paneer"], clashes: ["peanut_butter"] },
+
+      { id: "kraft_singles", name: "Kraft Singles", market: "american", cost: 1, veg: true, dairy: true, chaos: true, tags: ["cheese", "comfort", "chaos", "american"], pairs: ["potatoes", "hot_dogs"], clashes: ["white_truffle", "bok_choy"] },
+      { id: "hot_dogs", name: "Hot Dogs", market: "american", cost: 2, veg: false, meat: true, chaos: true, tags: ["protein", "salty", "chaos", "american"], pairs: ["potatoes", "pickles", "kraft_singles"], clashes: ["white_truffle"] },
+      { id: "potatoes", name: "Potatoes", market: "american", cost: 2, veg: true, tags: ["base", "comfort", "american"], pairs: ["butter", "cream", "thyme", "kraft_singles"], clashes: [] },
+      { id: "peanut_butter", name: "Peanut Butter", market: "american", cost: 1, veg: true, chaos: true, tags: ["fat", "nutty", "chaos", "american"], pairs: ["jelly_that_is_not_here"], clashes: ["brie", "soy_sauce", "jalapeno"] },
+      { id: "canned_tomatoes", name: "Canned Tomatoes", market: "american", cost: 2, veg: true, tags: ["sauce", "acid", "comfort", "american"], pairs: ["potatoes", "black_beans", "hot_dogs"], clashes: ["brie"] },
+      { id: "pickles", name: "Pickles", market: "american", cost: 1, veg: true, chaos: true, tags: ["acid", "crunch", "chaos", "american"], pairs: ["hot_dogs", "kraft_singles"], clashes: ["brie", "white_truffle"] },
+
+      { id: "moon_miso", name: "Moon Miso", market: "asian", cost: 0, veg: true, golden: true, tags: ["golden", "umami", "japanese", "mystic"], pairs: ["shiitake", "jasmine_rice"], clashes: [] },
+      { id: "saffron_thread", name: "Saffron Thread", market: "indian", cost: 0, veg: true, golden: true, tags: ["golden", "aroma", "elegant", "indian"], pairs: ["basmati_rice", "coconut_milk"], clashes: [] },
+      { id: "white_truffle", name: "White Truffle", market: "french", cost: 0, veg: true, golden: true, tags: ["golden", "umami", "elegant", "french"], pairs: ["butter", "cream", "shiitake"], clashes: ["kraft_singles", "hot_dogs", "pickles"] },
+      { id: "sainted_lime", name: "Sainted Lime", market: "latin", cost: 0, veg: true, golden: true, tags: ["golden", "acid", "bright", "latin"], pairs: ["cilantro", "jalapeno", "black_beans"], clashes: [] },
+      { id: "legendary_pickle", name: "Legendary Pickle", market: "american", cost: 0, veg: true, golden: true, chaos: true, tags: ["golden", "acid", "crunch", "chaos", "american"], pairs: ["hot_dogs", "kraft_singles"], clashes: ["white_truffle"] },
+      { id: "golden_pizza_crust", name: "Golden Pizza Crust", market: "american", cost: 0, veg: true, cursed: true, chaos: true, tags: ["cursed", "base", "chaos", "american"], pairs: [], clashes: ["everything"] }
+    ];
+
+    const ingredientById = Object.fromEntries(ingredients.map(item => [item.id, item]));
+
+    const methods = {
+      simmer: { name: "Summon Simmer", tags: ["sauce", "comfort", "gentle"], good: ["coconut_milk", "canned_tomatoes", "chickpeas", "black_beans"], bad: ["baguette", "pickles"] },
+      sear: { name: "Invoke Sear", tags: ["aroma", "bold", "savory"], good: ["shiitake", "paneer", "shallots", "plantains"], bad: ["cream", "brie"] },
+      deep_fry: { name: "Cast Deep Fry", tags: ["crunch", "comfort", "chaos"], good: ["potatoes", "plantains", "corn_tortillas", "hot_dogs"], bad: ["white_truffle", "bok_choy", "cream"] },
+      bake: { name: "Bake with Consequences", tags: ["comfort", "rich", "stable"], good: ["potatoes", "butter", "brie", "baguette"], bad: ["lime", "cilantro"] },
+      fresh: { name: "Toss Fresh", tags: ["fresh", "bright", "light"], good: ["lime", "cilantro", "bok_choy", "queso_fresco"], bad: ["hot_dogs", "kraft_singles"] }
+    };
+
+    const orders = [
+      {
+        call: "Customer 1 calls ahead.\n\n\"I need a vegetarian dish with Japanese ingredients but Indian flavor. I am trying to impress someone who owns linen napkins.\"",
+        wants: ["vegetarian", "japanese", "indian", "warm"], markets: ["asian", "indian"], avoid: ["meat"], threshold: 8
+      },
+      {
+        call: "Customer 2 calls in a whisper.\n\n\"My date loves French food, but I only trust American comfort food. Make it classy, but don't scare me.\"",
+        wants: ["french", "american", "comfort", "elegant"], markets: ["french", "american"], avoid: [], threshold: 8
+      },
+      {
+        call: "Customer 3 sounds like they are walking into a family argument.\n\n\"Latin flavors. No dairy. Filling enough to survive questions about my life choices.\"",
+        wants: ["latin", "hearty", "fresh", "no_dairy"], markets: ["latin"], avoid: ["dairy"], threshold: 7
+      },
+      {
+        call: "Customer 4 sighs theatrically.\n\n\"I need something elegant with potatoes. I am emotionally French tonight.\"",
+        wants: ["french", "american", "elegant", "comfort"], markets: ["french", "american"], avoid: [], threshold: 8
+      },
+      {
+        call: "Customer 5 speaks very quickly.\n\n\"Vegetarian, spicy, cheap. I have three coins and unresolved ambition.\"",
+        wants: ["vegetarian", "spicy", "cheap", "hearty"], markets: ["indian", "latin"], avoid: ["meat"], threshold: 7
+      },
+      {
+        call: "Customer 6 sounds exhausted.\n\n\"I just got off night shift. I need something Japanese-ish, warm, gentle, and legally soup-adjacent.\"",
+        wants: ["japanese", "gentle", "warm", "umami"], markets: ["asian"], avoid: ["chaos"], threshold: 7
+      },
+      {
+        call: "Customer 7 sounds like a man in a blazer saying 'fusion' for the first time.\n\n\"American diner energy, but open to culture. Not too fancy. I still want to recognize dinner.\"",
+        wants: ["american", "comfort", "latin", "chaos"], markets: ["american", "latin"], avoid: [], threshold: 8
+      },
+      {
+        call: "Customer 8 clears their throat.\n\n\"I want French elegance, Indian aroma, and absolutely no hot dogs. My mother is visiting and she detects weakness.\"",
+        wants: ["french", "indian", "elegant", "aroma"], markets: ["french", "indian"], avoid: ["meat", "chaos"], threshold: 8
+      },
+      {
+        call: "Customer 9 is clearly calling from a parking lot.\n\n\"I need something bright, spicy, vegetarian, and crunchy. If it can make me look like I planned ahead, even better.\"",
+        wants: ["latin", "spicy", "vegetarian", "crunch", "fresh"], markets: ["latin"], avoid: ["meat"], threshold: 8
+      },
+      {
+        call: "Customer 10 is the banquet clerk.\n\n\"Final qualifying order. Show range. Use at least three market traditions. Do not embarrass the city, the permit office, or yourself.\"",
+        wants: ["fusion", "balanced", "elegant", "comfort"], markets: ["asian", "indian", "french", "latin", "american"], avoid: ["cursed"], threshold: 10
+      }
+    ];
+
+    const marketTrustNeeded = 2;
+
+    const freshState = () => ({
+      phase: "intro",
+      orderIndex: 0,
+      coins: 18,
+      reputation: 0,
+      pantry: [],
+      selected: [],
+      method: null,
+      trust: { asian: 0, indian: 0, french: 0, latin: 0, american: 0 },
+      golden: [],
+      achievements: [],
+      badChoices: 0,
+      ended: false
+    });
+
+    let state = loadState();
+    const story = document.querySelector("#story");
+    const choices = document.querySelector("#choices");
+    const phasePill = document.querySelector("#phasePill");
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem("chef-greg-banquet-state");
+        return saved ? { ...freshState(), ...JSON.parse(saved) } : freshState();
+      } catch {
+        return freshState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem("chef-greg-banquet-state", JSON.stringify(state));
+    }
+
+    function print(text, className = "") {
+      const p = document.createElement("p");
+      p.className = `entry ${className}`.trim();
+      p.textContent = text;
+      story.appendChild(p);
+      story.scrollTop = story.scrollHeight;
+    }
+
+    function action(label, handler, opts = {}) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      if (opts.primary) button.classList.add("primary");
+      if (opts.danger) button.classList.add("danger");
+      if (opts.disabled) button.disabled = true;
+      button.addEventListener("click", () => {
+        print(`> ${label}`, "choice-line");
+        handler();
+        update();
+      });
+      choices.appendChild(button);
+    }
+
+    function clearChoices(grid = false) {
+      choices.innerHTML = "";
+      choices.className = grid ? "grid" : "";
+    }
+
+    function updateStats() {
+      document.querySelector("#coins").textContent = state.coins;
+      document.querySelector("#reputation").textContent = state.reputation;
+      document.querySelector("#orderNo").textContent = state.orderIndex >= orders.length ? "Bonus" : `${state.orderIndex + 1}/${orders.length}`;
+      document.querySelector("#goldenNo").textContent = `${state.golden.length}/5`;
+      phasePill.textContent = {
+        intro: "Kitchen",
+        call: "Order",
+        market: "Markets",
+        cook: "Cooking",
+        result: "Result",
+        final: "Banquet",
+        end: "Done"
+      }[state.phase] || "Kitchen";
+    }
+
+    function update() {
+      updateStats();
+      saveState();
+    }
+
+    function currentOrder() {
+      if (state.orderIndex < orders.length) return orders[state.orderIndex];
+      const missingMarket = Object.keys(markets).find(id => !state.golden.includes(goldenIdForMarket(id))) || "american";
+      return {
+        call: `Bonus caller from the ${markets[missingMarket].name}.\n\n"Chef Greg, the banquet door is almost open. Make one more dish that proves you understand this market. Please do not bring whatever is glowing in your pocket."`,
+        wants: {
+          asian: ["japanese", "umami", "fresh", "gentle"],
+          indian: ["indian", "warm", "spicy", "hearty"],
+          french: ["french", "elegant", "rich", "aroma"],
+          latin: ["latin", "fresh", "spicy", "bright"],
+          american: ["american", "comfort", "hearty", "chaos"]
+        }[missingMarket],
+        markets: [missingMarket],
+        avoid: missingMarket === "american" ? ["cursed"] : ["chaos", "cursed"],
+        threshold: 7
+      };
+    }
+
+    function startGame() {
+      state.phase = "call";
+      print(currentOrder().call);
+      showOrderChoices();
+      update();
+    }
+
+    function showOrderChoices() {
+      clearChoices();
+      action("Visit the markets", showMarkets, { primary: true });
+      action("Cook from pantry", showCook);
+      action("Read order again", () => print(currentOrder().call));
+      if (state.golden.length === 5 && state.orderIndex >= orders.length) {
+        action("Enter the Midnight Banquet", showFinal, { primary: true });
+      } else if (state.orderIndex >= orders.length) {
+        action("Answer a bonus market call", () => {
+          print(currentOrder().call);
+          showOrderChoices();
+        }, { primary: true });
+      }
+    }
+
+    function showMarkets() {
+      state.phase = "market";
+      clearChoices(true);
+      Object.entries(markets).forEach(([id, market]) => {
+        const goldenText = state.golden.includes(goldenIdForMarket(id)) ? "golden found" : `trust ${state.trust[id]}/${marketTrustNeeded}`;
+        action(`${market.name} (${goldenText})`, () => showMarket(id), { primary: currentOrder().markets.includes(id) });
+      });
+      action("Return to kitchen", showCook);
+    }
+
+    function showMarket(marketId) {
+      const market = markets[marketId];
+      print(`${market.name}\n\nThe shopkeep watches Chef Greg approach with the expression of someone reconsidering open-door policies.`);
+      clearChoices(true);
+      ingredients.filter(item => item.market === marketId && !item.golden && !item.cursed).forEach(item => {
+        const disabled = state.coins < item.cost || state.pantry.length >= 8;
+        action(`Buy ${item.name} (${item.cost} coins)`, () => buyIngredient(item.id), { disabled });
+      });
+
+      const goldenId = goldenIdForMarket(marketId);
+      if (!state.golden.includes(goldenId) && state.trust[marketId] >= marketTrustNeeded) {
+        action(`Accept ${market.golden}`, () => claimGolden(marketId), { primary: true });
+      }
+
+      if (marketId === "american" && state.reputation >= 4 && !state.pantry.includes("golden_pizza_crust") && !state.golden.includes("golden_pizza_crust")) {
+        action("Investigate the Golden Pizza Crust", claimCursedCrust, { danger: true });
+      }
+
+      action("Back to markets", showMarkets);
+      action("Return to kitchen", showCook, { primary: true });
+    }
+
+    function buyIngredient(id) {
+      const item = ingredientById[id];
+      if (state.coins < item.cost || state.pantry.length >= 8) return;
+      state.coins -= item.cost;
+      state.pantry.push(id);
+      print(`Greg buys ${item.name}.\n\nHe places it in his bag with the solemn care of a raccoon who once dropped an entire quiche into a storm drain.`);
+    }
+
+    function goldenIdForMarket(marketId) {
+      return {
+        asian: "moon_miso",
+        indian: "saffron_thread",
+        french: "white_truffle",
+        latin: "sainted_lime",
+        american: "legendary_pickle"
+      }[marketId];
+    }
+
+    function claimGolden(marketId) {
+      const id = goldenIdForMarket(marketId);
+      state.golden.push(id);
+      print(`The ${markets[marketId].name} shopkeep lowers their voice.\n\n"Chef Greg, you have demonstrated competence beyond what your paws suggested."\n\nGOLDEN INGREDIENT FOUND: ${ingredientById[id].name}`, "gold");
+      update();
+    }
+
+    function claimCursedCrust() {
+      state.pantry.push("golden_pizza_crust");
+      state.badChoices += 1;
+      print("Behind the American Market, Greg finds the Golden Pizza Crust.\n\nIt glows. It hums. It has been outside since Tuesday.\n\nEvery reasonable instinct says this is not food.\n\nGreg takes it anyway.", "bad");
+    }
+
+    function showCook() {
+      state.phase = "cook";
+      clearChoices(true);
+      print("Chef Greg returns to the kitchen.\n\nSelect 3 to 5 ingredients, then choose one cooking incantation. The pan waits. The pan has concerns.");
+      renderPantryChoices();
+    }
+
+    function renderPantryChoices() {
+      clearChoices(true);
+      state.pantry.forEach((id, index) => {
+        const item = ingredientById[id];
+        const selected = state.selected.includes(index);
+        action(`${selected ? "✓ " : ""}${item.name}`, () => toggleIngredient(index), { primary: selected });
+      });
+      action("Choose cooking method", showMethods, { primary: state.selected.length >= 3 && state.selected.length <= 5, disabled: state.selected.length < 3 || state.selected.length > 5 });
+      action("Visit markets", showMarkets);
+      action("Clear selected ingredients", () => { state.selected = []; showCook(); });
+      action("Read order again", () => print(currentOrder().call));
+    }
+
+    function toggleIngredient(index) {
+      if (state.selected.includes(index)) {
+        state.selected = state.selected.filter(i => i !== index);
+      } else if (state.selected.length < 5) {
+        state.selected.push(index);
+      }
+      renderPantryChoices();
+    }
+
+    function showMethods() {
+      clearChoices(true);
+      Object.entries(methods).forEach(([id, method]) => {
+        action(method.name, () => cookDish(id), { primary: id === "simmer" });
+      });
+      action("Back to ingredients", showCook);
+    }
+
+    function cookDish(methodId) {
+      state.method = methodId;
+      const selectedIds = state.selected.map(i => state.pantry[i]);
+      const selectedItems = selectedIds.map(id => ingredientById[id]);
+      const result = scoreDish(selectedItems, methods[methodId], currentOrder());
+
+      printResult(selectedItems, methods[methodId], result);
+      consumeSelected();
+
+      if (result.badEnding) {
+        state.phase = "end";
+        state.ended = true;
+        clearChoices();
+        action("Restart Greg's career", resetGame, { primary: true });
+        update();
+        return;
+      }
+
+      if (result.score >= currentOrder().threshold) {
+        const reward = 5 + Math.max(0, result.score - currentOrder().threshold);
+        state.coins += reward;
+        state.reputation += 1;
+        currentOrder().markets.forEach(m => {
+          state.trust[m] = Math.min(marketTrustNeeded, state.trust[m] + 1);
+        });
+        print(`The customer pays ${reward} coins and leaves a review containing the phrase "surprisingly legal."`, "good");
+      } else {
+        state.coins += 2;
+        print("The customer pays 2 sympathy coins.\n\nGreg accepts them with dignity and then immediately drops one under the stove.", "bad");
+      }
+
+      if (state.orderIndex < orders.length) state.orderIndex += 1;
+      state.selected = [];
+      state.method = null;
+
+      unlockAnyGoldenHints();
+
+      if (state.orderIndex >= orders.length) {
+        state.phase = "final";
+        clearChoices();
+        if (state.golden.length === 5) {
+          action("Enter the Midnight Banquet", showFinal, { primary: true });
+        } else {
+          print("The qualifying calls are done, but Greg still needs every Golden Ingredient before the Midnight Banquet will open its suspicious velvet doors.");
+          action("Answer a bonus market call", () => {
+            print(currentOrder().call);
+            showOrderChoices();
+          }, { primary: true });
+          action("Visit markets", showMarkets, { primary: true });
+        }
+      } else {
+        state.phase = "call";
+        clearChoices();
+        action("Answer the next call", () => {
+          print(currentOrder().call);
+          showOrderChoices();
+        }, { primary: true });
+        action("Visit markets first", showMarkets);
+      }
+    }
+
+    function consumeSelected() {
+      const keep = state.pantry.filter((_, index) => !state.selected.includes(index));
+      state.pantry = keep;
+    }
+
+    function scoreDish(items, method, order) {
+      let score = 0;
+      let chaos = 0;
+      let balance = 0;
+      const tags = new Set();
+      const marketsUsed = new Set();
+      const ids = items.map(i => i.id);
+      const names = items.map(i => i.name);
+      const roles = new Set();
+      let badEnding = false;
+
+      items.forEach(item => {
+        marketsUsed.add(item.market);
+        item.tags.forEach(tag => tags.add(tag));
+        if (item.chaos) chaos += 2;
+        if (item.cursed) chaos += 5;
+        ["base", "protein", "vegetable", "sauce", "fat", "seasoning", "herb", "acid"].forEach(role => {
+          if (item.tags.includes(role)) roles.add(role);
+        });
+      });
+
+      if (roles.has("base")) balance += 2;
+      if (roles.has("protein") || roles.has("vegetable")) balance += 1;
+      if (roles.has("sauce") || roles.has("fat")) balance += 1;
+      if (roles.has("seasoning") || roles.has("herb") || roles.has("acid")) balance += 1;
+      if (items.length >= 4) balance += 1;
+
+      score += balance;
+
+      order.wants.forEach(want => {
+        if (want === "vegetarian" && items.every(i => i.veg)) score += 2;
+        else if (want === "no_dairy" && items.every(i => !i.dairy)) score += 2;
+        else if (want === "cheap" && items.reduce((sum, i) => sum + i.cost, 0) <= 8) score += 2;
+        else if (want === "fusion" && marketsUsed.size >= 3) score += 3;
+        else if (want === "balanced" && balance >= 5) score += 2;
+        else if (tags.has(want)) score += 2;
+      });
+
+      order.markets.forEach(market => {
+        if (marketsUsed.has(market)) score += 1;
+      });
+
+      order.avoid.forEach(avoid => {
+        if (avoid === "meat" && items.some(i => i.meat)) score -= 5;
+        if (avoid === "dairy" && items.some(i => i.dairy)) score -= 4;
+        if (avoid === "chaos" && chaos > 0) score -= 4;
+        if (avoid === "cursed" && items.some(i => i.cursed)) score -= 10;
+      });
+
+      items.forEach(item => {
+        item.pairs.forEach(pair => {
+          if (ids.includes(pair)) score += 1;
+        });
+        item.clashes.forEach(clash => {
+          if (clash === "everything" || ids.includes(clash)) score -= 2;
+        });
+      });
+
+      method.good.forEach(id => {
+        if (ids.includes(id)) score += 2;
+      });
+      method.bad.forEach(id => {
+        if (ids.includes(id)) score -= 2;
+      });
+      method.tags.forEach(tag => {
+        if (order.wants.includes(tag)) score += 1;
+      });
+
+      if (chaos > 4 && !order.wants.includes("chaos")) score -= chaos;
+      if (chaos > 8 && balance < 4) score -= 6;
+
+      if (ids.includes("golden_pizza_crust") && state.phase === "final") {
+        badEnding = true;
+      }
+
+      let tier = "Culinary Incident";
+      if (score >= order.threshold + 4) tier = "Banquet Worthy";
+      else if (score >= order.threshold) tier = "Customer Approved";
+      else if (score >= order.threshold - 3) tier = "Weird But Working";
+      else if (chaos >= 8) tier = "Raccoon Refusal";
+
+      return { score, chaos, balance, tier, names, badEnding };
+    }
+
+    function printResult(items, method, result) {
+      const dishName = nameDish(items, result);
+      print(`Greg prepares ${dishName} using ${method.name}.\n\n${plateDescription(result)}\n\nScore: ${result.score}\nTier: ${result.tier}`, result.score >= currentOrder().threshold ? "good" : "bad");
+      if (result.tier === "Raccoon Refusal") {
+        print("A raccoon from the alley approaches, sniffs once, and says:\n\n\"I'm a raccoon and I'm still not eating this.\"\n\nAchievement unlocked: Raccoon Refusal.", "bad");
+        if (!state.achievements.includes("Raccoon Refusal")) state.achievements.push("Raccoon Refusal");
+      }
+    }
+
+    function plateDescription(result) {
+      if (result.badEnding) {
+        return "The Golden Pizza Crust levitates. The judges scream in alphabetical order. This is not cuisine. This is a zoning event.";
+      }
+      if (result.tier === "Banquet Worthy") return "The dish arrives with confidence, balance, and the unsettling charisma of a raccoon who has finally understood garnish.";
+      if (result.tier === "Customer Approved") return "The dish works. Nobody expected this, least of all the pan.";
+      if (result.tier === "Weird But Working") return "The dish has questions, but it also has answers. Greg chooses to focus on the answers.";
+      if (result.tier === "Raccoon Refusal") return "The plate makes a sound plates do not usually make. Greg writes this down as 'interactive texture.'";
+      return "The dish enters the room wearing a tuxedo jacket over a gas station uniform.";
+    }
+
+    function nameDish(items, result) {
+      const ids = items.map(i => i.id);
+      if (ids.includes("golden_pizza_crust")) return "The Forbidden Parking Lot Special";
+      if (ids.includes("white_truffle") && ids.includes("kraft_singles")) return "White Truffle Mac of Questionable Nobility";
+      if (ids.includes("bok_choy") && ids.includes("curry_spices")) return "Curried Bok Choy Incident";
+      if (ids.includes("potatoes") && ids.includes("butter")) return "Greg's Department Store Gratin";
+      if (ids.includes("black_beans") && ids.includes("corn_tortillas")) return "Midnight Market Stack";
+      if (result.chaos > 5) return "The Dish That Should Not Work";
+      if (result.balance >= 5) return "Balanced Alley Supper";
+      return "Greg's Latest Explanation";
+    }
+
+    function unlockAnyGoldenHints() {
+      Object.entries(markets).forEach(([id, market]) => {
+        const goldenId = goldenIdForMarket(id);
+        if (state.trust[id] >= marketTrustNeeded && !state.golden.includes(goldenId)) {
+          print(`${market.name} update: the shopkeep has something golden behind the counter now. They are trying to look casual and failing.`, "gold");
+        }
+      });
+    }
+
+    function showFinal() {
+      state.phase = "final";
+      clearChoices(true);
+      print("The Midnight Banquet opens at exactly 12:00.\n\nEvery chef brings a signature dish.\n\nChef Greg brings five Golden Ingredients, one questionable permit, and the calm confidence of an animal who has chewed through a locked pantry door.\n\nChoose the final cooking style.");
+      action("The Balanced Miracle", () => finalDish("balanced"), { primary: true });
+      action("The Comfort Legend", () => finalDish("comfort") );
+      action("The Chaos Masterpiece", () => finalDish("chaos") );
+      if (state.pantry.includes("golden_pizza_crust")) {
+        action("Add the Golden Pizza Crust", () => finalDish("cursed"), { danger: true });
+      }
+    }
+
+    function finalDish(style) {
+      clearChoices();
+      if (style === "cursed") {
+        print("Greg adds the Golden Pizza Crust.\n\nThe crust glows. The banquet hall tilts. A health inspector bursts through a stained-glass window for no clear tactical reason.\n\nSECRET BAD ENDING: THE CRUST ASCENDS\n\nGreg is banned from all culinary institutions until further notice. He considers this mixed feedback.", "bad");
+      } else {
+        const names = state.golden.map(id => ingredientById[id].name).join(", ");
+        const endingName = {
+          balanced: "The Five-Market Miracle",
+          comfort: "The Raccoon's Golden Supper",
+          chaos: "The Dish That Should Not Work But Does"
+        }[style];
+        print(`${endingName}\n\nGreg combines ${names}.\n\nThe dish should be impossible. White truffle and Legendary Pickle are in the same room. Saffron Thread is trying to stay professional. Sainted Lime is doing diplomacy. Moon Miso holds the whole thing together like a tiny edible moon.\n\nThe judges take one bite.\n\nSilence.\n\nThen applause.\n\nChef Greg has found his signature dish.\n\nHe is still not licensed, but now everyone says it more respectfully.\n\nTHE END`, "gold");
+      }
+      state.phase = "end";
+      state.ended = true;
+      action("Play again", resetGame, { primary: true });
+      update();
+    }
+
+    function showPantry() {
+      const list = state.pantry.length ? state.pantry.map(id => `- ${ingredientById[id].name}`).join("\n") : "The pantry contains dust, ambition, and one spoon Greg is emotionally attached to.";
+      print(`Pantry:\n${list}`);
+    }
+
+    function showStatus() {
+      const trustLines = Object.entries(markets).map(([id, market]) => `- ${market.name}: ${state.trust[id]}/${marketTrustNeeded}`).join("\n");
+      const golden = state.golden.length ? state.golden.map(id => ingredientById[id].name).join(", ") : "none yet";
+      print(`Status:\nCoins: ${state.coins}\nReputation: ${state.reputation}\nGolden ingredients: ${golden}\n\nMarket trust:\n${trustLines}`);
+    }
+
+    function resetGame() {
+      state = freshState();
+      localStorage.removeItem("chef-greg-banquet-state");
+      story.innerHTML = "";
+      renderIntro();
+      update();
+    }
+
+    document.querySelector("#pantryButton").addEventListener("click", showPantry);
+    document.querySelector("#statusButton").addEventListener("click", showStatus);
+    document.querySelector("#resetButton").addEventListener("click", resetGame);
+
+    function renderIntro() {
+      clearChoices();
+      print("Chef Greg had never been invited to the Midnight Banquet.\n\nThis was, in his opinion, discrimination against self-taught chefs, nocturnal entrepreneurs, and anyone with tiny hands.\n\nBut this year would be different.\n\nTo enter, every chef needed a signature dish. Greg had no signature dish. He had a dented pan, a questionable permit, and access to five markets that mostly tolerated him.\n\nIt would have to be enough.");
+      action("Answer the first customer call", startGame, { primary: true });
+    }
+
+    if (localStorage.getItem("chef-greg-banquet-state")) {
+      print("Welcome back. Chef Greg has been guarding your pantry with unnecessary intensity.");
+      showOrderChoices();
+    } else {
+      renderIntro();
+    }
+    update();
+  </script>
+</body>
+</html>
